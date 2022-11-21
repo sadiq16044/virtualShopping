@@ -47,7 +47,7 @@ async function loadedShowcaseHandler(mpSdk){
         // ...
     });
 var clicked =0;
-    var htmlToInject = `
+    var sadiqHTML = `
   <style> 
     button { 
       width: 100px; 
@@ -58,46 +58,86 @@ var clicked =0;
         color: white;
     }
   </style> 
-  <button id="btn1">CLICK ME</button> 
+  <button id="btn1">Add to Cart</button> 
   <p id="output">No Clicks yet</p>
 
   <script> 
     var btn1 = document.getElementById("btn1"); 
     const output = document.getElementById("output");
+    
     let clicks = 0;
-    btn1.addEventListener('click', ()=>{
-        ++clicks;
-        output.innerHTML = \`Clicks: \${clicks}\`;
 
-    })
-    btn1.addEventListener("click", function () { 
-      window.send("buttonClick", 12345); 
+    btn1.addEventListener("click", function () {
+      btn1.innerHTML = \`Added to cart\`;
+      window.send("button1Click", 1); 
     }); 
   </script>`;
+  var laptopHTML = `
+  <style> 
+    button { 
+      width: 100px; 
+      height: 50px; 
+    } 
+    p {
+        fontSize:20px;
+        color: white;
+    }
+  </style> 
+  <button id="btn1">Add to Cart</button> 
+  <p id="output">No Clicks yet</p>
 
-  mpSdk.Mattertag.injectHTML("8FC1KIrOhgO", htmlToInject,{
+  <script> 
+    var btn1 = document.getElementById("btn1"); 
+    const output = document.getElementById("output");
+    
+    let clicks = 0;
+
+    btn1.addEventListener("click", function () {
+      btn1.innerHTML = \`Added to cart\`;
+      window.send("button2Click", 2); 
+    }); 
+  </script>`;
+  mpSdk.Mattertag.injectHTML("8FC1KIrOhgO", sadiqHTML,{
     
 }
     ).then(function (messenger) {
-        messenger.on("buttonClick", function (buttonId) {
-          console.log('clicked button with id:', buttonId);
+        messenger.on("button1Click", function (buttonId) {
+            const cartitems = document.getElementById("cart");
+            
+          console.log('clicked button1 with id:', buttonId);
           ++clicked;
+          cartitems.innerHTML =`${clicked}`
           console.log("Total Clicks is ${clicked}",clicked);
         });
       });
+
+      mpSdk.Mattertag.injectHTML("iKftApetBLk", laptopHTML,{
+    
+    }
+        ).then(function (messenger) {
+            messenger.on("button2Click", function (buttonId) {
+                const cartitems = document.getElementById("cart");
+                
+              console.log('clicked button2 with id:', buttonId);
+              ++clicked;
+              cartitems.innerHTML =`${clicked}`
+              console.log("Total Clicks is ${clicked}",clicked);
+            });
+          });
+
     mpSdk.on(mpSdk.Mattertag.Event.CLICK,
         function (tagSid) {
             console.log("MatterTag Label is");
             console.log(mpSdk.Mattertag.data[0])
             console.log('Mattertag ' + tagSid + ' was selected');
-            mpSdk.Mattertag.editBillboard("iKftApetBLk" , {
-                label: 'This is a new title',
-                description: 'This image was set dynamically by the Showcase sdk',
-                media:{
-                    type: mpSdk.Mattertag.MediaType.VIDEO,
-                    src: 'https://www.youtube.com/watch?v=9tFJa_POIi0',
-                },
-              });
+            // mpSdk.Mattertag.editBillboard("iKftApetBLk" , {
+            //     label: 'This is a new title',
+            //     description: 'This image was set dynamically by the Showcase sdk',
+            //     media:{
+            //         type: mpSdk.Mattertag.MediaType.VIDEO,
+            //         src: 'https://www.youtube.com/watch?v=9tFJa_POIi0',
+            //     },
+            //   });
         }
     );
     
