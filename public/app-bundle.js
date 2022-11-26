@@ -255,6 +255,16 @@ async function addToCart(data) {
     } else {
       console.log("Don't add in cart");
     }
+    snackBar();
     $("#drawr").load(window.location.href + " #drawr");
   });
+}
+
+function snackBar() {
+  let x = document.getElementById("snackbar");
+  x.innerHTML = "Added to cart" // snackbar text
+  x.className = "show";
+  setTimeout(function() {
+      x.className = x.className.replace("show", "");
+  }, 3000);
 }
