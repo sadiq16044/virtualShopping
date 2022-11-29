@@ -48,15 +48,23 @@ async function loadedShowcaseHandler(mpSdk) {
   }).done(function (result) {
     products = result;
   });
-  console.log(products)
+  // console.log(products)
 
 
   mpSdk.Mattertag.data.subscribe({ // it will trigger when the tag added after 3D space loaded 
     onAdded: function (index, item, collection) {
       console.log('Tag added to the collection', index, item.label);
 
+      let currentProduct;
+      for (let i = 0; i < products.length; i++) {
+        if (products[i].slug == item.label.toLowerCase()) {
+          currentProduct = products[i];
+        }
+      }
+      // console.log(currentProduct);
+
       let productName = item.label.toLowerCase();
-      mpSdk.Mattertag.injectHTML(index, HtmlInject(index, productName), {
+      mpSdk.Mattertag.injectHTML(index, HtmlInject(index, currentProduct), {
       }).then(function (messenger) { // it will communicate with the injectHtml
 
         messenger.on(index, function (data) { // event occurs when the window.send is triggered
@@ -207,7 +215,7 @@ function successCallback(message) { console.log("Message message"); }
 
 function errorCallback(error) { console.error(error); }
 
-function HtmlInject(tagSid, productName) {
+function HtmlInject(tagSid, product) {
   return `
   <style> 
     button { 
@@ -221,17 +229,19 @@ function HtmlInject(tagSid, productName) {
   </style> 
   <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
   <script>
-  async function addCart(tagSid, productName) {
+  async function addCart(tagSid, product) {
     console.log("add this product to cart");
     window.send(tagSid, {
       tagSid: tagSid, 
-      slug: productName,
+      slug: product,
     });
   }
   </script>
-  <div style="width: auto; height: auto;  display: inline-block;">
-  <img style="width: 80px; height: 80px;" src="/images/${productName}.png" alt=""><br>
-  <button style="width: auto; height: 40px;" id="${tagSid}" onclick="addCart(\'${tagSid}\',\'${productName}\')">Add to Cart</button>
+  <div style="width: auto; height: auto; ">
+    <img style="width: 100px; height: 100px;" src="/images/${product.slug}.png" alt="">
+    <p style="width: auto; height: auto; font-size: 18px; left: 108px; top: 28px; position: absolute">${parseFloat(product.price).toFixed(2)} $</p>
+    <button style="width: auto; height: 30px; top: 70px; position: absolute" id="${tagSid}" onclick="addCart(\'${tagSid}\',\'${product.slug}\')">Add to Cart</button>
+  </div>
   `
 }
 // onclick="addCart(${tagSid})
@@ -239,32 +249,48 @@ function HtmlInject(tagSid, productName) {
 async function addToCart(data) {
   console.log('inside addToCart')
   // console.log(data)
+
+
   $.ajax({ // asking for values
-    method: 'POST',
-    url: '/cart/add',
+    method: 'GET',
+    url: '/login/status/yes',
     dataType: 'json',
-    data: data
   }).then((result) => {
-    if (result.newProduct) {
-      console.log("Add in cart");
-      console.log('Before: ' + $('#cart').text());
-      let tempLength = parseInt($('#cart').text()) + 1;
-      $('#cart').text(tempLength.toString());
-      $('#cart-header').text(tempLength.toString());
-      console.log('After: ' + $('#cart').text());
+    if (result.status) {
+      $.ajax({ // asking for values
+        method: 'POST',
+        url: '/cart/add',
+        dataType: 'json',
+        data: data
+      }).then((result) => {
+        if (result.newProduct) {
+          console.log("Add in cart");
+          console.log('Before: ' + $('#cart').text());
+          let tempLength = parseInt($('#cart').text()) + 1;
+          $('#cart').text(tempLength.toString());
+          $('#cart-header').text(tempLength.toString());
+          console.log('After: ' + $('#cart').text());
+        } else {
+          console.log("Don't add in cart");
+        }
+
+        snackBar("Added to cart", "green");
+        $("#drawr").load(window.location.href + " #drawr");
+      });
     } else {
-      console.log("Don't add in cart");
+      snackBar("Log in to add products", "red");
+      $("#drawr").load(window.location.href + " #drawr");
     }
-    snackBar();
-    $("#drawr").load(window.location.href + " #drawr");
   });
 }
 
-function snackBar() {
+function snackBar(msg, color) {
   let x = document.getElementById("snackbar");
-  x.innerHTML = "Added to cart" // snackbar text
+  $("#snackbar").css("background-color", color);
+  $("#snackbar").text(msg); // snackbar text
+  // x.innerHTML = msg // snackbar text
   x.className = "show";
-  setTimeout(function() {
-      x.className = x.className.replace("show", "");
+  setTimeout(function () {
+    x.className = x.className.replace("show", "");
   }, 3000);
 }
